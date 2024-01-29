@@ -1,0 +1,32 @@
+{
+  "name": "video-tube-app",
+  "version": "1.0.0",
+  "description": "This app i mostly like a YT clone its mainly a backened project and i made it using Chai and code Backend series ",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon -r dotenv/config --experimental-json-modules src/index.js"
+  },
+  "keywords": [
+    "Javascript",
+    "Backend",
+    "Chai",
+    "aur",
+    "Code",
+    "Tube",
+    "app",
+    "YT",
+    "clone"
+  ],
+  "author": "Shahnawaz ALi",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^3.0.3",
+    "prettier": "3.2.4"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.1",
+    "express": "^4.18.2",
+    "mongoose": "^8.1.1"
+  }
+}
