@@ -1,3 +1,23 @@
+// 2nd way to create asyncHandler function
+
+const asyncHandler = (requestHandler) => {
+  return (req, res, next) => {
+    Promise.resolve(requestHandler(req, res, next)).catch((err) => next(err));
+  };
+};
+
+export { asyncHandler };
+
+
+
+
+
+
+
+
+
+
+
 // 1st way to create asyncHandler function
 // const asyncHandler = (fn) => {
 //   async (req, res, next) => {
@@ -12,12 +32,3 @@
 //   };
 // };
 
-// 2nd way to create asyncHandler function
-const asyncHandler = (requestHandler) => {
-  (req, res, next) => {
-    Promise.resolve().catch((err) => {
-      next(err);
-    });
-  };
-};
-export { asyncHandler };
