@@ -1,7 +1,7 @@
 
-# Play app - Your Fav Video app
+# Play app - Video tube app Backend
 
-This app is a video tube app where the user can play any video, write comments on it and share it. In a way, it is a clone app of apps like YouTube and in this app I have mostly focused on learning the backend and in this app I have learned And learned from YouTube channel Hitesh Chaudhary with code. Thanks Hitesh Sir
+This app is a video tube app where the user can play any video, write comments on it and share it. In a way, it is a clone app of apps like YouTube and in this app I have mostly focused on learning the backend and in this app I have learned And learned from YouTube channel Hitesh Chaudhary with code. Thanks Hitesh Sir @hiteshchoudhary
 
 ## Installation
 
