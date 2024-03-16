@@ -1,5 +1,6 @@
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
+import { ApiError } from "./ApiError.js";
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -16,10 +17,19 @@ const uploadOnCloudinary = async (localFilePath) => {
     fs.unlinkSync(localFilePath);
     return response;
   } catch (error) {
-    console.error("Error uploading file to Cloudinary", error);
     fs.unlinkSync(localFilePath);
     return null;
   }
 };
 
-export { uploadOnCloudinary };
+const deleteAssetFromCloudinary = async (assetLink) => {
+  try {
+    const publicId = assetLink.split('/').pop().split('.')[0];
+    const response = await cloudinary.uploader.destroy(publicId);
+    return response;
+  } catch (error) {
+    throw new ApiError(500, "Error deleting file from Cloudinary", [error]);
+  }
+};
+
+export { uploadOnCloudinary, deleteAssetFromCloudinary};
