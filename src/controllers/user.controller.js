@@ -164,6 +164,22 @@ const logoutUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "User logged out successfully"));
 });
 
+const deleteUser = asyncHandler(async (req, res) => {
+  const { password: confirmPassword  } = req.body;
+  const user = await User.findById(req.user?._id);
+
+  const isPasswordCorrect = await user.isPasswordCorrect(confirmPassword);
+
+  if (!isPasswordCorrect) {
+    throw new ApiError(400, "Password is incorrect");
+  }
+  await User.findByIdAndDelete(user?._id);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "User Deleted successfully"));
+});
+
 const refreshAccessToken = asyncHandler(async (req, res) => {
   try {
     const incomingRefreshToken =
@@ -259,7 +275,9 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
 });
 
 const updateUserAvatar = asyncHandler(async (req, res) => {
-  const oldAvatarLink = (await User.findById(req.user?._id).select("avatar -_id")).avatar;
+  const oldAvatarLink = (
+    await User.findById(req.user?._id).select("avatar -_id")
+  )?.avatar;
   const avatarLocalPath = req.file?.path;
 
   if (!avatarLocalPath) {
@@ -296,13 +314,16 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
 });
 
 const updateUserCoverImage = asyncHandler(async (req, res) => {
+  const oldCoverImageLink = (
+    await User.findById(req.user?._id).select("coverImage -_id")
+  )?.coverImage;
   const coverImageLocalPath = req.file?.path;
 
   if (!coverImageLocalPath) {
     throw new ApiError(400, "Cover image file path is required");
   }
 
-  const coverImage = await uploadOnCloudinary(avatarLocalPath);
+  const coverImage = await uploadOnCloudinary(coverImageLocalPath);
 
   if (!coverImage.url) {
     throw new ApiError(400, "Error uploading cover image");
@@ -315,6 +336,17 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
     },
     { new: true }
   ).select("-password");
+
+  if (!oldCoverImageLink) {
+    throw new ApiError(400, "Error while fetching coverImage link");
+  }
+
+  if (oldCoverImageLink == "" || oldCoverImageLink) {
+    const deleteCoverImage = await deleteAssetFromCloudinary(oldCoverImageLink);
+    if (!deleteCoverImage) {
+      throw new ApiError(400, "Error deleting old cover image");
+    }
+  }
 
   return res
     .status(200)
@@ -452,6 +484,7 @@ export {
   registerUser,
   loginUser,
   logoutUser,
+  deleteUser,
   refreshAccessToken,
   changeCurrentPassword,
   getCurrentUser,

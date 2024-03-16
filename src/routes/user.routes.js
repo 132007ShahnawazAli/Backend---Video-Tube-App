@@ -3,6 +3,7 @@ import {
   loginUser,
   logoutUser,
   registerUser,
+  deleteUser,
   refreshAccessToken,
   changeCurrentPassword,
   getCurrentUser,
@@ -34,6 +35,8 @@ router.route("/register").post(
 router.route("/login").post(loginUser);
 
 router.route("/logout").post(verifyJWT, logoutUser);
+
+router.route("/delete").delete(verifyJWT, deleteUser);
 
 router.route("/refresh-token").post(refreshAccessToken);
 
