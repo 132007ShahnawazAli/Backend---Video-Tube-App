@@ -165,7 +165,7 @@ const logoutUser = asyncHandler(async (req, res) => {
 });
 
 const deleteUser = asyncHandler(async (req, res) => {
-  const { password: confirmPassword  } = req.body;
+  const { password: confirmPassword } = req.body;
   const user = await User.findById(req.user?._id);
 
   const isPasswordCorrect = await user.isPasswordCorrect(confirmPassword);
