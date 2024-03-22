@@ -1,6 +1,5 @@
 import mongoose, { isValidObjectId } from "mongoose";
 import { Video } from "../models/video.model.js";
-import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -10,8 +9,114 @@ import {
 } from "../utils/cloudinary.js";
 
 const getAllVideos = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
-  //TODO: get all videos based on query, sort, pagination
+  let {
+    page = 1,
+    limit = 10,
+    query,
+    sortBy = "createdAt",
+    sortType = "dsc",
+  } = req.body;
+
+  const sortDirection = sortType === "dsc" ? 1 : -1;
+
+  const pipeline = [];
+
+  if (!query) {
+    query = "";
+  }
+
+  if (query.trim() !== "") {
+    pipeline.push({
+      $match: {
+        $or: [
+          { title: { $regex: query, $options: "i" } },
+          { description: { $regex: query, $options: "i" } },
+        ],
+        isPublished: true,
+      },
+    });
+  } else {
+    pipeline.push({
+      $match: {
+        isPublished: true,
+      },
+    });
+  }
+
+  pipeline.push(
+    {
+      $lookup: {
+        from: "users",
+        localField: "owner",
+        foreignField: "_id",
+        as: "owner",
+      },
+    },
+    {
+      $lookup: {
+        from: "comments",
+        localField: "_id",
+        foreignField: "video",
+        as: "comments",
+      },
+    },
+    {
+      $lookup: {
+        from: "likes",
+        localField: "_id",
+        foreignField: "video",
+        as: "likes",
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        videoFile: 1,
+        thumbnail: 1,
+        title: 1,
+        description: 1,
+        duration: 1,
+        views: 1,
+        isPublished: 1,
+        owner: {
+          $arrayElemAt: [
+            {
+              $map: {
+                input: "$owner",
+                as: "owner",
+                in: {
+                  username: "$$owner.username",
+                  fullname: "$$owner.fullname",
+                  email: "$$owner.email",
+                },
+              },
+            },
+            0,
+          ],
+        },
+        createdAt: 1,
+        updatedAt: 1,
+        comments: 1,
+        totalComments: { $size: "$comments" },
+        totalLikes: { $size: "$likes" },
+      },
+    },
+    {
+      $sort: { [sortBy]: sortDirection },
+    },
+    { $skip: (parseInt(page) - 1) * parseInt(limit) },
+    { $limit: parseInt(limit) }
+  );
+
+  const videos = await Video.aggregate(pipeline);
+
+  if (videos.length === 0) {
+    return res.status(200).json(new ApiResponse(200, "No videos available."));
+  }
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, "Videos fetched successfully", videos));
 });
 
 const publishAVideo = asyncHandler(async (req, res) => {

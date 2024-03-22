@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { isValidObjectId } from "mongoose";
 import { Comment } from "../models/comment.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
@@ -138,12 +138,24 @@ const updateComment = asyncHandler(async (req, res) => {
   // TODO: update a comment
   const { commentId } = req.params;
   const { comment } = req.body;
-  if (!commentId) {
-    throw new ApiError(400, "Comment ID is required");
+
+  if (!isValidObjectId(commentId)) {
+    throw new ApiError(400, "Comment ID is invalid");
   }
   if (!comment) {
     throw new ApiError(400, "Comment is required");
   }
+
+  const userComment = await Comment.findById(commentId);
+
+  if (!userComment) {
+    throw new ApiError(404, "Comment not found");
+  }
+
+  if (userComment.owner.toString() !== req.user._id.toString()) {
+    throw new ApiError(404, "You are not allowed to update this comment");
+  }
+
   const updatedComment = await Comment.findByIdAndUpdate(
     commentId,
     {
